@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+<script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="js/jquery.rdfquery.core.min-1.0.js"></script>
+</head>
+<body>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>URL</th>
+            </tr>
+        </thead>
+        <tbody id="spTable">
+        </tbody>
+
+    </table>
+
+    <script type="text/javascript">
+      var sp = $.rdf.databank()
+          .base('http://jazzsm.examples.com/00001/')
+          .prefix('oslc', 'http://open-services.net/ns/core#')
+          .prefix('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+          .prefix('rr', 'http://jazz.net/ns/ism/registry#')
+          .prefix('rdfs', 'http://www.w3.org/2000/01/rdf-schema#')
+          .prefix('dcterms', 'http://purl.org/dc/terms/')
+          .add('<http://jazzsm.examples.com/00001> rdf:type <http://open-services.net/ns/core#ServiceProvider> .')
+          .add('<http://jazzsm.examples.com/00001> dcterms:title "Example service provider" .')
+          .add('<http://jazzsm.examples.com/00001> dcterms:description "Example provider created from a Javascript invocation" .')
+          .add('<http://jazzsm.examples.com/00001> oslc:service _:service .')
+          .add('_:service oslc:domain <http://open-services.net/ns/perfmon#> .');
+
+        var spDump = sp.dump({format: "application/rdf+xml"});
+
+        $.ajax({
+            type : "POST",
+            contentType: "application/rdf+xml; charset=UTF-8",
+            url : '/oslc/pr/collection',
+            processData: false,
+            data: spDump,
+            success: function(response){
+                console.log(response);
+            },
+            error: function(response) {
+                console.log(response);
+            }
+        });
+          
+    </script>
+</body>
+</html>
