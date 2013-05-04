@@ -1,25 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="ISO-8859-1">
-<title>Insert title here</title>
+<meta charset="UTF8">
+<title>Registry Services - Javascript sample using JQuery</title>
 <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
 <script type="text/javascript" src="js/jquery.rdfquery.core.min-1.0.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="css/rdf.tables.css" />
 </head>
 <body>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Description</th>
-                <th>URL</th>
-            </tr>
-        </thead>
-        <tbody id="spTable">
-        </tbody>
-
-    </table>
+	<table id="providers">
+		<thead>
+			<tr>
+				<th>Record</th>
+				<th>URL</th>
+			</tr>
+		</thead>
+	    <tbody id="providersData">
+		    <tr>
+		        <td>Service Provider URI</td><td><span id="spUrlId"/></td>
+		    </tr>
+		    <tr>
+		        <td>Registration Record URI</td><td><span id="rrUrlId"/></td>
+		    </tr>
+	    </tbody>
+	</table>
 
     <script type="text/javascript">
       var sp = $.rdf.databank()
@@ -43,10 +48,54 @@
             url : '/oslc/pr/collection',
             processData: false,
             data: spDump,
-            success: function(response){
+            success: function(response, textStatus, jqXHR){
+            	var spUrl = jqXHR.getResponseHeader("Location");
+            	$("#spUrlId").append("<a href=" + spUrl + ">" + spUrl + "</a>");
+
+            	var registrationRecordUrl = 'http://jazzsm.examples.com/computers/00156';
+                var registrationRecord = 
+                	$.rdf.databank()
+		                .base('http://jazzsm.examples.com/computers/00156/')
+		                .prefix('oslc', 'http://open-services.net/ns/core#')
+		                .prefix('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+		                .prefix('rr', 'http://jazz.net/ns/ism/registry#')
+		                .prefix('crtv', 'http://open-services.net/ns/crtv#')
+		                .prefix('vm', 'http://open-services.net/ns/vm-monitoring/1.0/')
+		                .prefix('rdfs', 'http://www.w3.org/2000/01/rdf-schema#')
+                        .add('<' + registrationRecordUrl + '> rdf:type <http://open-services.net/ns/crtv#ComputerSystem> .')
+                        .add('<' + registrationRecordUrl + '> rdf:type <http://jazz.net/ns/ism/registry#RegistrationRecord> .')
+                        .add('<' + registrationRecordUrl + '> oslc:serviceProvider <' + spUrl + '> .')
+                        .add('<' + registrationRecordUrl + '> rr:recordType <http://open-services.net/ns/crtv#monitoring> .')
+                        .add('<' + registrationRecordUrl + '> crtv:systemBoardUUID "avc-d1b27283-013c-8f36-4dbc-74bd38ca7e3f-z1</crtv:systemBoardUUID" .')
+                        .add('<' + registrationRecordUrl + '> crtv:virtual "false" .')
+                        .add('<' + registrationRecordUrl + '> vm:state "up" .')
+                        .add('<' + registrationRecordUrl + '> crtv:manufacturer "IBM" .')
+                        .add('<' + registrationRecordUrl + '> crtv:model "2007CAOa" .')
+                        .add('<' + registrationRecordUrl + '> crtv:serialNumber "LG3G4a" .')
+
+		        var regRecordDump = registrationRecord.dump({format: "application/rdf+xml"});
+		
+		        $.ajax({
+		            type : "POST",
+		            contentType: "application/rdf+xml; charset=UTF-8",
+		            url : '/oslc/rr/registration/collection',
+		            processData: false,
+		            data: regRecordDump,
+		            success: function(response, textStatus, rrjqXHR){
+		            	var rrUrl = rrjqXHR.getResponseHeader("Location");
+		            	$("#rrUrlId").append("<a href=" + rrUrl + ">" + rrUrl + "</a>");
+		                console.log(response);
+		            },
+		            error: function(response, textStatus, rrjqXHR){
+		            	$("#rrUrlId").append("Registration failed, status code: " + rrjqXHR.status + " - " + rrjqXHR.responseText);
+		                console.log(response);
+		            }
+		        });
+                        
                 console.log(response);
             },
-            error: function(response) {
+            error: function(response, textStatus, jqXHR){
+            	$("#spUrlId").append("Registration failed, status code: " + jqXHR.status + " - " + jqXHR.responseText);
                 console.log(response);
             }
         });

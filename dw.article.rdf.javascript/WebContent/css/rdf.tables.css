@@ -1,0 +1,26 @@
+#providers
+{
+font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+text-align:left;
+width:100%;
+border-collapse:collapse;
+}
+
+#providers td, #providers th 
+{
+border:1px solid #999;
+padding:3px 7px 2px 7px;
+}
+
+#providers th 
+{
+background-color:#ddd;
+color:#333;
+font-size:110%;
+}
+
+.rdfquerybug
+{
+vertical-align: super;
+font-size: 50%;
+}
