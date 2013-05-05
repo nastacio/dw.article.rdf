@@ -1,43 +1,46 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta charset="UTF8">
-<title>Registry Services - Javascript sample using JQuery</title>
-<script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
-<script type="text/javascript" src="js/jquery.rdfquery.core.min-1.0.js"></script>
+  <meta charset="UTF8">
+  <title>Registry Services - Javascript sample using JQuery</title>
+  <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
+  <script type="text/javascript" src="js/jquery.rdfquery.core.min-1.0.js"></script>
 
   <link rel="stylesheet" type="text/css" href="css/rdf.tables.css" />
 </head>
+
 <body>
-	<table id="providers">
-		<thead>
-			<tr>
-				<th>Record</th>
-				<th>URL</th>
-			</tr>
-		</thead>
-	    <tbody id="providersData">
-		    <tr>
-		        <td>Service Provider URI</td><td><span id="spUrlId"/></td>
-		    </tr>
-		    <tr>
-		        <td>Registration Record URI</td><td><span id="rrUrlId"/></td>
-		    </tr>
-	    </tbody>
-	</table>
+<table id="providers">
+<thead>
+<tr>
+<th>Record</th>
+<th>URL</th>
+</tr>
+</thead>
+    <tbody id="providersData">
+    <tr>
+        <td>Service Provider URI</td><td><span id="spUrlId"/></td>
+    </tr>
+    <tr>
+        <td>Registration Record URI</td><td><span id="rrUrlId"/></td>
+    </tr>
+    </tbody>
+</table>
 
     <script type="text/javascript">
+      var spSourceUrl = 'http://jazzsm.examples.com/00003';
       var sp = $.rdf.databank()
-          .base('http://jazzsm.examples.com/00001/')
+          .base(spSourceUrl + '/')
           .prefix('oslc', 'http://open-services.net/ns/core#')
           .prefix('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#')
           .prefix('rr', 'http://jazz.net/ns/ism/registry#')
           .prefix('rdfs', 'http://www.w3.org/2000/01/rdf-schema#')
           .prefix('dcterms', 'http://purl.org/dc/terms/')
-          .add('<http://jazzsm.examples.com/00001> rdf:type <http://open-services.net/ns/core#ServiceProvider> .')
-          .add('<http://jazzsm.examples.com/00001> dcterms:title "Example service provider" .')
-          .add('<http://jazzsm.examples.com/00001> dcterms:description "Example provider created from a Javascript invocation" .')
-          .add('<http://jazzsm.examples.com/00001> oslc:service _:service .')
+          .add('<' + spSourceUrl + '> rdf:type <http://open-services.net/ns/core#ServiceProvider> .')
+          .add('<' + spSourceUrl + '> dcterms:title "Example service provider" .')
+          .add('<' + spSourceUrl + '> dcterms:description "Example provider created from a Javascript invocation" .')
+          .add('<' + spSourceUrl + '> oslc:service _:service .')
           .add('_:service oslc:domain <http://open-services.net/ns/perfmon#> .');
 
         var spDump = sp.dump({format: "application/rdf+xml"});
@@ -49,19 +52,19 @@
             processData: false,
             data: spDump,
             success: function(response, textStatus, jqXHR){
-            	var spUrl = jqXHR.getResponseHeader("Location");
-            	$("#spUrlId").append("<a href=" + spUrl + ">" + spUrl + "</a>");
+            var spUrl = jqXHR.getResponseHeader("Location");
+            $("#spUrlId").append("<a href=" + spUrl + ">" + spUrl + "</a>");
 
-            	var registrationRecordUrl = 'http://jazzsm.examples.com/computers/00156';
+            var registrationRecordUrl = 'http://jazzsm.examples.com/computers/00157';
                 var registrationRecord = 
-                	$.rdf.databank()
-		                .base('http://jazzsm.examples.com/computers/00156/')
-		                .prefix('oslc', 'http://open-services.net/ns/core#')
-		                .prefix('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#')
-		                .prefix('rr', 'http://jazz.net/ns/ism/registry#')
-		                .prefix('crtv', 'http://open-services.net/ns/crtv#')
-		                .prefix('vm', 'http://open-services.net/ns/vm-monitoring/1.0/')
-		                .prefix('rdfs', 'http://www.w3.org/2000/01/rdf-schema#')
+                $.rdf.databank()
+                .base(registrationRecordUrl + '/')
+                .prefix('oslc', 'http://open-services.net/ns/core#')
+                .prefix('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+                .prefix('rr', 'http://jazz.net/ns/ism/registry#')
+                .prefix('crtv', 'http://open-services.net/ns/crtv#')
+                .prefix('vm', 'http://open-services.net/ns/vm-monitoring/1.0/')
+                .prefix('rdfs', 'http://www.w3.org/2000/01/rdf-schema#')
                         .add('<' + registrationRecordUrl + '> rdf:type <http://open-services.net/ns/crtv#ComputerSystem> .')
                         .add('<' + registrationRecordUrl + '> rdf:type <http://jazz.net/ns/ism/registry#RegistrationRecord> .')
                         .add('<' + registrationRecordUrl + '> oslc:serviceProvider <' + spUrl + '> .')
@@ -73,29 +76,29 @@
                         .add('<' + registrationRecordUrl + '> crtv:model "2007CAOa" .')
                         .add('<' + registrationRecordUrl + '> crtv:serialNumber "LG3G4a" .')
 
-		        var regRecordDump = registrationRecord.dump({format: "application/rdf+xml"});
-		
-		        $.ajax({
-		            type : "POST",
-		            contentType: "application/rdf+xml; charset=UTF-8",
-		            url : '/oslc/rr/registration/collection',
-		            processData: false,
-		            data: regRecordDump,
-		            success: function(response, textStatus, rrjqXHR){
-		            	var rrUrl = rrjqXHR.getResponseHeader("Location");
-		            	$("#rrUrlId").append("<a href=" + rrUrl + ">" + rrUrl + "</a>");
-		                console.log(response);
-		            },
-		            error: function(response, textStatus, rrjqXHR){
-		            	$("#rrUrlId").append("Registration failed, status code: " + rrjqXHR.status + " - " + rrjqXHR.responseText);
-		                console.log(response);
-		            }
-		        });
+        var regRecordDump = registrationRecord.dump({format: "application/rdf+xml"});
+
+        $.ajax({
+            type : "POST",
+            contentType: "application/rdf+xml; charset=UTF-8",
+            url : '/oslc/rr/registration/collection',
+            processData: false,
+            data: regRecordDump,
+            success: function(response, textStatus, rrjqXHR){
+            var rrUrl = rrjqXHR.getResponseHeader("Location");
+            $("#rrUrlId").append("<a href=" + rrUrl + ">" + rrUrl + "</a>");
+                console.log(response);
+            },
+            error: function(response, textStatus, rrjqXHR){
+            $("#rrUrlId").append("Registration failed, status code: " + rrjqXHR.status + " - " + rrjqXHR.responseText);
+                console.log(response);
+            }
+        });
                         
                 console.log(response);
             },
             error: function(response, textStatus, jqXHR){
-            	$("#spUrlId").append("Registration failed, status code: " + jqXHR.status + " - " + jqXHR.responseText);
+            $("#spUrlId").append("Registration failed, status code: " + jqXHR.status + " - " + jqXHR.responseText);
                 console.log(response);
             }
         });

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="UTF8">
   <title>Registry Services - Javascript sample using JQuery</title>
@@ -8,102 +9,115 @@
   
   <link rel="stylesheet" type="text/css" href="css/rdf.tables.css" />
 </head>
+
 <body>
 
-	<table id="providers">
-		<thead>
-			<tr>
-				<th>Title
-					<span class="rdfquerybug"><a href='http://code.google.com/p/rdfquery/issues/detail?id=17' 
-					title="Known RDFQuery problem in some browsers: RDF/XML Parser Fails to Parse XMLLiteral Outter Text Nodes">
-					1</a></span>
-				</th>
-				<th>Description
-					<span class="rdfquerybug"><a href='http://code.google.com/p/rdfquery/issues/detail?id=17' 
-					title="Known RDFQuery problem in some browsers: RDF/XML Parser Fails to Parse XMLLiteral Outter Text Nodes">
-					1</a></span>
-				</th>
-				<th>Registry URL</th>
-				<th>Source Record URL</th>
-			</tr>
-		</thead>
-	    <tbody id="providersData">
-	    </tbody>
-	</table>
+    <table id="providers">
+        <thead>
+            <tr>
+                <th>Title
+                    <span class="rdfquerybug"><a href='http://code.google.com/p/rdfquery/issues/detail?id=17' 
+                    title="Known RDFQuery problem in some browsers: RDF/XML Parser Fails to Parse XMLLiteral Outter Text Nodes">
+                    1</a></span>
+                </th>
+                <th>Description
+                    <span class="rdfquerybug"><a href='http://code.google.com/p/rdfquery/issues/detail?id=17' 
+                    title="Known RDFQuery problem in some browsers: RDF/XML Parser Fails to Parse XMLLiteral Outter Text Nodes">
+                    1</a></span>
+                </th>
+                <th>Provider URL in Registry Services</th>
+                <th>Source Provider URL</th>
+                <th>Display Registration Records</th>
+            </tr>
+        </thead>
+        <tbody id="providersData">
+        </tbody>
+    </table>
     <p/>
-	<table id="providers">
-		<thead>
-			<tr>
-				<th>Registration record</th>
-				<th>Source record</th>
-			</tr>
-		</thead>
-	    <tbody id="registrationData">
-	    </tbody>
-	</table>
+    <p/>
+    <p/>
+    <table id="providers">
+        <thead>
+            <tr>
+                <th>Registration record</th>
+                <th>Source record</th>
+            </tr>
+        </thead>
+        <tbody id="registrationData">
+            <tr>
+                <td>Click on a service provider</td>
+                <td/>
+            </tr>
+        </tbody>
+    </table>
 
-	<script type="text/javascript">
+    <script type="text/javascript">
 
-		function displayRegistrationRecords() {
-		    $.ajax({
-				url : '/oslc/rr/registration/collection?oslc.select=*&oslc.where=oslc:serviceProvider=<' + spUrl + '>',
-				success : function(data, textStatus, jqXHR) {
-					spRdf = $.rdf().load(data, {});
-					spRdf
-		              .prefix('rr', 'http://jazz.net/ns/ism/registry#')
-					  .where("?s a <http://open-services.net/ns/core#RegistrationRecord>")
-					  .where("?s rr:sourceRecord ?sourceRecord")
-					  .each(function () {
-					    var 
-		                  rrUrl = this.s.value;
-		                  sourceRecordUrl = this.sourceRecord.value;
-		
-						  $("#providersData")
-						    .append("<tr>" +
-							    "<td>" + title + "</td>" +
-							    "<td>" + description + "</td>" + 
-							    "<td><a href='" + spUrl + "'>" + spUrl + "</a></td>" + 
-							    "<td><a href='" + sourceRecordUrl + "'>" + sourceRecordUrl + "</a></td>" + 
-								"</tr>");
-					  });
-				},
-		
-				dataType : "xml"
-			});
-		}
-	
-	    $.ajax({
-			url : '/oslc/pr/collection?oslc.select=*',
-			success : function(data, textStatus, jqXHR) {
-				spRdf = $.rdf().load(data, {});
-				spRdf
-				  .prefix('oslc', 'http://open-services.net/ns/core#"')
-				  .prefix('dcterms', 'http://purl.org/dc/terms/')
+        function displayRegistrationRecords(spUrl) {
+            $.ajax({
+                url : '/oslc/rr/registration/collection?oslc.select=*&oslc.where=oslc:serviceProvider=<' + spUrl + '>',
+                success : function(data, textStatus, jqXHR) {
+                    spRdf = $.rdf().load(data, {});
+                    var spRdfMatches = spRdf
+                      .prefix('rr', 'http://jazz.net/ns/ism/registry#')
+                      .where("?s a <http://jazz.net/ns/ism/registry#RegistrationRecord>")
+                      .where("?s rr:sourceRecord ?sourceRecord");
+                    
+                    if (spRdfMatches.size() == 0) {
+                        $("#registrationData")
+                        .replaceWith("<tbody id='registrationData'><tr><td>No records for provider</td><td/></tr></tbody>");
+                    } else {
+                    	spRdfMatches.each(function () {
+	                        var 
+	                          rrUrl = this.s.value;
+	                          sourceRecordUrl = this.sourceRecord.value;
+
+	                          $("#registrationData")
+	                            .replaceWith("<tbody id='registrationData'><tr>" +
+	                                "<td><a href='" + rrUrl + "'>" + rrUrl + "</a></td>" + 
+	                                "<td><a href='" + sourceRecordUrl + "'>" + sourceRecordUrl + "</a></td>" + 
+	                                "</tr></tbody>");
+	                    });
+                    }
+                },
+        
+                dataType : "xml"
+            });
+        }
+    
+        $.ajax({
+            url : '/oslc/pr/collection?oslc.select=*',
+            success : function(data, textStatus, jqXHR) {
+                spRdf = $.rdf().load(data, {});
+                spRdf
+                  .prefix('oslc', 'http://open-services.net/ns/core#"')
+                  .prefix('dcterms', 'http://purl.org/dc/terms/')
                   .prefix('rr', 'http://jazz.net/ns/ism/registry#')
-				  .where("?s a <http://open-services.net/ns/core#ServiceProvider>")
-				  .where("?s dcterms:title ?title")
-				  .where("?s dcterms:description ?description")
-				  .where("?s rr:sourceRecord ?sourceRecord")
-				  .each(function () {
-				    var 
-				      title = this.title === undefined ? 'No title' : this.title.value,
-					  description = this.description === undefined ? 'No description' : this.description.value,
+                  .where("?s a <http://open-services.net/ns/core#ServiceProvider>")
+                  .where("?s dcterms:title ?title")
+                  .where("?s dcterms:description ?description")
+                  .where("?s rr:sourceRecord ?sourceRecord")
+                  .each(function () {
+                    var 
+                      title = this.title === undefined ? 'No title' : this.title.value,
+                      description = this.description === undefined ? 'No description' : this.description.value,
                       spUrl = this.s.value;
                       sourceRecordUrl = this.sourceRecord.value;
 
-					  $("#providersData")
-					    .append("<tr>" +
-						    "<td>" + title + "</td>" +
-						    "<td>" + description + "</td>" + 
-						    "<td><a href='" + spUrl + "'>" + spUrl + "</a></td>" + 
-						    "<td><a href='" + sourceRecordUrl + "'>" + sourceRecordUrl + "</a></td>" + 
-							"</tr>");
-				  });
-				
-			},
+                      $("#providersData")
+                        .append("<tr>" +
+                            "<td>" + title + "</td>" +
+                            "<td>" + description + "</td>" + 
+                            "<td><a href='" + spUrl + "'>" + spUrl + "</a></td>" + 
+                            "<td><a href='" + sourceRecordUrl + "'>" + sourceRecordUrl + "</a></td>" + 
+                            "<td><a onclick='displayRegistrationRecords(\"" + spUrl + "\")'><img src='images/action_go.gif'/></a></td>" + 
+                            "</tr>");
+                  });
+                
+            },
 
-			dataType : "xml"
-		});
-	</script>
+            dataType : "xml"
+        });
+    </script>
 </body>
 </html>
