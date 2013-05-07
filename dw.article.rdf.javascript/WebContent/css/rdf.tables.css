@@ -6,17 +6,28 @@ width:100%;
 border-collapse:collapse;
 }
 
+#providers caption 
+{
+background-color:#ddd;
+border:1px solid #999;
+padding:3px 7px 2px 7px;
+color:#333;
+font-size:100%;
+font-weight: bold;
+text-align: left; 
+}
 #providers td, #providers th 
 {
 border:1px solid #999;
 padding:3px 7px 2px 7px;
+font-size:80%;
 }
 
 #providers th 
 {
 background-color:#ddd;
 color:#333;
-font-size:110%;
+font-size:90%;
 }
 
 .rdfquerybug
