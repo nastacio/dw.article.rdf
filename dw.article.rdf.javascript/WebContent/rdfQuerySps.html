@@ -80,17 +80,18 @@
         function displayRegistrationRecords(spUrl) {
             $(registrationDataJSId)
                .replaceWith('<tbody id="registrationData"><tr>' +
-                       '<td>Fetching registration records...</td><td/><td/>' + 
+                       '<td>Fetching registration records...</td><td/>' + 
                        '</tr></tbody>');
+
             $.ajax({
-                url : '/oslc/rr/registration/collection?oslc.select=*&oslc.where=oslc:serviceProvider=<' + spUrl + '>',
+                url : '/oslc/rr/registration/collection?oslc.select=*&oslc.where=oslc:serviceProvider=' + encodeURIComponent('<' + spUrl +'>'),
                 success : function(data, textStatus, jqXHR) {
                     regrRdf = $.rdf().load(data, {});
                     var regrRdfMatches = regrRdf
                       .prefix('rr', 'http://jazz.net/ns/ism/registry#')
                       .where("?s a <http://jazz.net/ns/ism/registry#RegistrationRecord>")
                       .where("?s rr:sourceRecord ?sourceRecord");
-                    
+
                     if (regrRdfMatches.size() == 0) {
                         $(registrationDataJSId)
                            .replaceWith('<tbody id="registrationData"><tr><td>No registration records for provider</td><td/></tr></tbody>');
@@ -108,7 +109,9 @@
                         });
                     }
                 },
-        
+                error: function(data, textStatus, jqXHR) {
+                    alert(data.responseText);
+                },
                 dataType : 'xml'
             });
         }
@@ -167,7 +170,9 @@
                         });
                     }
                 },
-        
+                error: function(data, textStatus, jqXHR) {
+                    alert(data.responseText);
+                },
                 dataType : 'xml'
             });
         }
@@ -182,19 +187,18 @@
             success : function(data, textStatus, jqXHR) {
                 spRdf = $.rdf().load(data, {});
                 spRdf
-                  .prefix('oslc', 'http://open-services.net/ns/core#"')
                   .prefix('dcterms', 'http://purl.org/dc/terms/')
                   .prefix('rr', 'http://jazz.net/ns/ism/registry#')
                   .where("?s a <http://open-services.net/ns/core#ServiceProvider>")
-                  .where("?s dcterms:title ?title")
-                  .where("?s dcterms:description ?description")
-                  .where("?s rr:sourceRecord ?sourceRecord")
+                  .optional("?s dcterms:title ?title")
+                  .optional("?s dcterms:description ?description")
+                  .optional("?s rr:sourceRecord ?sourceRecord")
                   .each(function () {
                     var 
                       title = this.title === undefined ? 'No title' : this.title.value,
                       description = this.description === undefined ? 'No description' : this.description.value,
                       spUrl = this.s.value;
-                      sourceRecordUrl = this.sourceRecord.value;
+                      sourceRecordUrl = this.sourceRecord === undefined ? '' : this.sourceRecord.value;
 
                       $("#providersData")
                         .append('<tr>' +
