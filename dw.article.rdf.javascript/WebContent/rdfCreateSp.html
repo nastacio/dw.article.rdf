@@ -2,12 +2,12 @@
 <html>
 
 <head>
-  <meta charset="UTF8">
-  <title>Registry Services - Javascript sample using JQuery</title>
-  <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
-  <script type="text/javascript" src="js/jquery.rdfquery.core.min-1.0.js"></script>
+<meta charset="UTF8">
+<title>Registry Services - Javascript sample using JQuery</title>
+<script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="js/jquery.rdfquery.core.min-1.0.js"></script>
 
-  <link rel="stylesheet" type="text/css" href="css/rdf.tables.css" />
+<link rel="stylesheet" type="text/css" href="css/rdf.tables.css" />
 </head>
 
 <body>
@@ -21,93 +21,114 @@
         <tbody id="providersData">
             <tr>
                 <td>Service Provider URI</td>
-                <td><span id="spUrlId"></span>
-                </td>
+                <td><span id="spUrlId"></span></td>
             </tr>
             <tr>
                 <td>Registration Record URI</td>
-                <td><span id="rrUrlId"></span>
-                </td>
+                <td><span id="rrUrlId"></span></td>
             </tr>
         </tbody>
     </table>
 
     <script type="text/javascript">
-      var spSourceUrl = "http://jazzsm.examples.com/00003";
-      var sp = $.rdf.databank()
-          .base(spSourceUrl + "/")
-          .prefix("oslc", "http://open-services.net/ns/core#")
-          .prefix("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
-          .prefix("rr", "http://jazz.net/ns/ism/registry#")
-          .prefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
-          .prefix("dcterms", "http://purl.org/dc/terms/")
-          .add("<" + spSourceUrl + "> rdf:type <http://open-services.net/ns/core#ServiceProvider> .")
-          .add("<" + spSourceUrl + "> dcterms:title \"Example service provider\" .")
-          .add("<" + spSourceUrl + "> dcterms:description \"Example provider created from a Javascript invocation\" .")
-          .add("<" + spSourceUrl + "> oslc:service _:service .")
-          .add("_:service oslc:domain <http://open-services.net/ns/perfmon#> .");
+        var spSourceUrl = "http://jazzsm.examples.com/00004";
+        var sp = $.rdf
+                .databank()
+                .base(spSourceUrl)
+                .prefix("dcterms", "http://purl.org/dc/terms/")
+                .prefix("oslc", "http://open-services.net/ns/core#")
+                .prefix("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
+                .prefix("rr", "http://jazz.net/ns/ism/registry#")
+                .add("<" + spSourceUrl + "> rdf:type <http://open-services.net/ns/core#ServiceProvider> .")
+                .add("<" + spSourceUrl + "> dcterms:title \"Example service provider\" .")
+                .add("<" + spSourceUrl + "> dcterms:description \"Example provider created from a Javascript invocation\" .")
+                .add("<" + spSourceUrl + "> oslc:service _:servicePerf .")
+                .add("_:servicePerf oslc:domain <http://open-services.net/ns/perfmon#> .");
 
-        var spDump = sp.dump({format: "application/rdf+xml"});
+        var spDump = sp.dump({
+            format : "application/rdf+xml"
+        });
 
-        $("#spUrlId").replaceWith("<span id='spUrlId'>Submitted service provider registration request...</span>");
+        $("#spUrlId")
+                .replaceWith(
+                        "<span id='spUrlId'>Submitted service provider registration request...</span>");
 
         $.ajax({
             type : "POST",
-            contentType: "application/rdf+xml; charset=UTF-8",
+            contentType : "application/rdf+xml; charset=UTF-8",
             url : "/oslc/pr/collection",
-            processData: false,
-            data: spDump,
-            success: function(response, textStatus, jqXHR){
+            processData : false,
+            data : spDump,
+            
+            success : function(response, textStatus, jqXHR) {
                 var spUrl = jqXHR.getResponseHeader("Location");
-                $("#spUrlId").replaceWith("<span id='spUrlId'><a href='" + spUrl + "'>" + spUrl + "</a></span>");
+                $("#spUrlId").replaceWith(
+                        "<span id='spUrlId'><a href='" + spUrl + "'>"
+                                + spUrl + "</a></span>");
 
-                var registrationRecordUrl = "http://jazzsm.examples.com/computers/00157";
-                    var registrationRecord = 
-                    $.rdf.databank()
-                    .base(registrationRecordUrl + "/")
+                var registrationRecordUrl = "http://jazzsm.examples.com/computers/00158";
+                var registrationRecord = $.rdf
+                    .databank()
+                    .base(registrationRecordUrl)
                     .prefix("oslc", "http://open-services.net/ns/core#")
                     .prefix("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
                     .prefix("rr", "http://jazz.net/ns/ism/registry#")
                     .prefix("crtv", "http://open-services.net/ns/crtv#")
                     .prefix("vm", "http://open-services.net/ns/vm-monitoring/1.0/")
-                    .prefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
-                            .add("<" + registrationRecordUrl + "> rdf:type <http://open-services.net/ns/crtv#ComputerSystem> .")
-                            .add("<" + registrationRecordUrl + "> rdf:type <http://jazz.net/ns/ism/registry#RegistrationRecord> .")
-                            .add("<" + registrationRecordUrl + "> oslc:serviceProvider <" + spUrl + "> .")
-                            .add("<" + registrationRecordUrl + "> rr:recordType <http://open-services.net/ns/crtv#monitoring> .")
-                            .add("<" + registrationRecordUrl + "> crtv:systemBoardUUID \"avc-d1b27283-013c-8f36-4dbc-74bd38ca7e3f-z1</crtv:systemBoardUUID\" .")
-                            .add("<" + registrationRecordUrl + "> crtv:virtual \"false\" .")
-                            .add("<" + registrationRecordUrl + "> vm:state \"up\" .")
-                            .add("<" + registrationRecordUrl + "> crtv:manufacturer \"IBM\" .")
-                            .add("<" + registrationRecordUrl + "> crtv:model \"2007CAOa\" .")
-                            .add("<" + registrationRecordUrl + "> crtv:serialNumber \"LG3G4a\" .")
+                    .add("<" + registrationRecordUrl + "> rdf:type <http://open-services.net/ns/crtv#ComputerSystem> .")
+                    .add("<" + registrationRecordUrl + "> rdf:type <http://jazz.net/ns/ism/registry#RegistrationRecord> .")
+                    .add("<" + registrationRecordUrl + "> oslc:serviceProvider <" + spUrl + "> .")
+                    .add("<" + registrationRecordUrl + "> rr:recordType <http://open-services.net/ns/crtv#monitoring> .")
+                    .add("<" + registrationRecordUrl + "> crtv:manufacturer \"IBM\" .")
+                    .add("<" + registrationRecordUrl + "> crtv:model \"2007CAO\" .")
+                    .add("<" + registrationRecordUrl + "> crtv:serialNumber \"LG3G4\" .")
+                    .add("<" + registrationRecordUrl + "> crtv:systemBoardUUID \"avc-d1b27283-013c-8f36-4dbc-74bd38ca7e3f-z1\" .")
+                    .add("<" + registrationRecordUrl + "> crtv:virtual \"false\" .")
+                    .add("<" + registrationRecordUrl + "> vm:state \"up\" .");
 
-                var regRecordDump = registrationRecord.dump({format: "application/rdf+xml"});
+                var regRecordDump = registrationRecord.dump({
+                    format : "application/rdf+xml"
+                });
 
-                $("#rrUrlId").replaceWith("<span id='rrUrlId'>Submitted registration record request...</span>");
+                $("#rrUrlId")
+                        .replaceWith(
+                                "<span id='rrUrlId'>Submitted registration record request...</span>");
                 $.ajax({
                     type : "POST",
-                    contentType: "application/rdf+xml; charset=UTF-8",
+                    contentType : "application/rdf+xml; charset=UTF-8",
                     url : "/oslc/rr/registration/collection",
-                    processData: false,
-                    data: regRecordDump,
-                    success: function(response, textStatus, rrjqXHR){
-                        var rrUrl = rrjqXHR.getResponseHeader("Location");
-                        $("#rrUrlId").replaceWith("<span id='rrUrlId'><a href='" + rrUrl + "'>" + rrUrl + "</a></span>");
+                    processData : false,
+                    data : regRecordDump,
+
+                    success : function(response, textStatus, rrjqXHR) {
+                        var rrUrl = rrjqXHR
+                                .getResponseHeader("Location");
+                        $("#rrUrlId").replaceWith(
+                                "<span id='rrUrlId'>" + 
+                                "<a href='" + rrUrl + "'>" + 
+                                rrUrl + 
+                                "</a></span>");
                     },
-                    error: function(response, textStatus, rrjqXHR){
-                        $("#rrUrlId").replaceWith("<span id='rrUrlId'>Registration failed, status code: " + 
-                            rrjqXHR.status + " - " + rrjqXHR.responseText + "</span>");
+
+                    error : function(response, textStatus, rrjqXHR) {
+                        $("#rrUrlId").replaceWith(
+                                "<span id='rrUrlId'>" + 
+                                "Registration failed, status code: " + 
+                                rrjqXHR.status + " - "
+                                + rrjqXHR.responseText + 
+                                "</span>");
                     }
                 });
 
             },
-            error: function(response, textStatus, jqXHR){
-                $("#spUrlId").replaceWith("<span id='spUrlId'>Registration failed, status code: " + 
-                    jqXHR.status + " - " + jqXHR.responseText + "</span>");
+
+            error : function(response, textStatus, jqXHR) {
+                $("#spUrlId").replaceWith(
+                        "<span id='spUrlId'>Registration failed, status code: "
+                                + jqXHR.status + " - "
+                                + jqXHR.responseText + "</span>");
             }
         });
-
     </script>
 </body>
 </html>
