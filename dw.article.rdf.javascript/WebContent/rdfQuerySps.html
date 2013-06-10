@@ -74,106 +74,116 @@
     </table>
 
     <script type="text/javascript">
-        var registrationDataDOMId = 'registrationData';
-        var registrationDataJSId = '#registrationData';
+        var registrationDataDOMId = "registrationData";
+        var registrationDataJSId = "#registrationData";
 
         function displayRegistrationRecords(spUrl) {
             $(registrationDataJSId)
-               .replaceWith('<tbody id="registrationData"><tr>' +
-                       '<td>Fetching registration records...</td><td/>' + 
-                       '</tr></tbody>');
+               .replaceWith("<tbody id='registrationData'><tr>" +
+                       "<td>Fetching registration records...</td><td/>" + 
+                       "</tr></tbody>");
 
+            var 
+                encodedSpUrl = encodeURIComponent("<" + spUrl +">"),
+                whereClause = "oslc.where=oslc:serviceProvider=" + encodedSpUrl;
             $.ajax({
-                url : '/oslc/rr/registration/collection?oslc.select=*&oslc.where=oslc:serviceProvider=' + encodeURIComponent('<' + spUrl +'>'),
+                url : "/oslc/rr/registration/collection?oslc.select=*&" + whereClause,
                 success : function(data, textStatus, jqXHR) {
                     regrRdf = $.rdf().load(data, {});
                     var regrRdfMatches = regrRdf
-                      .prefix('rr', 'http://jazz.net/ns/ism/registry#')
+                      .prefix("rr", "http://jazz.net/ns/ism/registry#")
                       .where("?s a <http://jazz.net/ns/ism/registry#RegistrationRecord>")
                       .where("?s rr:sourceRecord ?sourceRecord");
 
                     if (regrRdfMatches.size() == 0) {
                         $(registrationDataJSId)
-                           .replaceWith('<tbody id="registrationData"><tr><td>No registration records for provider</td><td/></tr></tbody>');
+                           .replaceWith("<tbody id='registrationData'><tr>" + 
+                               "<td>No registration records for provider</td>" + 
+                               "<td/></tr>" + 
+                               "</tbody>");
                     } else {
+                        var registrationHtmlStr =
+                            "<tbody id='registrationData'>";
                         regrRdfMatches.each(function () {
                             var 
                               rrUrl = this.s.value,
                               sourceRecordUrl = this.sourceRecord.value;
 
-                              $(registrationDataJSId)
-                                .replaceWith('<tbody id="registrationData"><tr>' +
-                                    '<td><a href="' + rrUrl + '">' + rrUrl + '</a></td>' + 
-                                    '<td><a href="' + sourceRecordUrl + '">' + sourceRecordUrl + '</a></td>' + 
-                                    '</tr></tbody>');
+                              registrationHtmlStr = registrationHtmlStr +
+                                  "<tr>" +
+                                  "<td><a href='" + rrUrl + "'>" + rrUrl + "</a></td>" + 
+                                  "<td><a href='" + sourceRecordUrl + "'>" + sourceRecordUrl + "</a></td>" + 
+                                  "</tr>";
                         });
+                        registrationHtmlStr = registrationHtmlStr +
+                            "</tbody>";
+                        $(registrationDataJSId)
+                            .replaceWith(registrationHtmlStr);
                     }
                 },
                 error: function(data, textStatus, jqXHR) {
                     alert(data.responseText);
                 },
-                dataType : 'xml'
+                dataType : "xml"
             });
         }
     
         function displayResourceRecords(spUrl) {
-            var resourceDataDOMId = 'resourceData';
-            var resourceDataJSId = '#resourceData';
+            var resourceDataDOMId = "resourceData";
+            var resourceDataJSId = "#resourceData";
 
             $(resourceDataJSId)
-               .replaceWith('<tbody id="resourceData"><tr>' +
-                       '<td>Fetching resource records...</td><td/><td/>' + 
-                       '</tr></tbody>');
+               .replaceWith("<tbody id='resourceData'><tr>" +
+                       "<td>Fetching resource records...</td><td/><td/>" + 
+                       "</tr></tbody>");
+                       
+            var whereClause = "oslc.where=" + 
+                        encodeURI("rr:providerRecord{oslc:serviceProvider=<" + spUrl + ">}");
             $.ajax({
-                url : '/oslc/rr//collection?oslc.select=*&oslc.where=' + 
-                        encodeURI('rr:providerRecord{oslc:serviceProvider=<' + spUrl + '>}'),
+                url : "/oslc/rr//collection?oslc.select=*&" + whereClause,
                 success : function(data, textStatus, jqXHR) {
                     rrRdf = $.rdf().load(data, {});
                     var rrRdfMatches = rrRdf
-                      .prefix('dcterms', 'http://purl.org/dc/terms/')
-                      .where("?s dcterms:modified ?time");
-                    
+                        .prefix("dcterms", "http://purl.org/dc/terms/")
+                        .where("?s dcterms:modified ?time");
+                                       
                     if (rrRdfMatches.size() == 0) {
                         $(resourceDataJSId)
-                            .replaceWith('<tbody id="resourceData"><tr><td>No resource records for provider</td><td/><td/></tr></tbody>');
+                            .replaceWith("<tbody id='resourceData'><tr>" + 
+                                "<td>No resource records for provider</td>" + 
+                                "<td/><td/></tr>" + 
+                                "</tbody>");
                     } else {
-                        rrRdfMatches.each(function () {
+                        var resourceRecordHtmlStr = "<tbody id='resourceData'>";
 
-//                             var rrLinks = '';
-                            var rrLinksCount =
-                              rrRdfMatches
-                                .prefix('oslc', 'http://open-services.net/ns/core#')
-                                .prefix('rr', 'http://jazz.net/ns/ism/registry#')
-                                .where("?s rr:providerRecord ?pr")
-//                                 .where("?pr rr:registrationRecord ?")
-//                                 .where("?pr oslc:serviceProvider ?sp")
-                                .size();
-                            
-//                                 .each(function() {
-//                                     var
-//                                         rr = this.rr.value,
-//                                         sp = this.sp.value;
-                                        
-//                                        rrLinks = rrLinks + "  " + rr + " " + sp 
-//                                     });
-                            
+                        rrRdfMatches.each(function (i, bindings, rrTriples) {
                             var 
-                              rrUrl = this.s.value;
-                              modified = this.time.value;
+                                rrUrl = this.s.value,
+                                modified = this.time.value;
 
-                              $(resourceDataJSId)
-                                .replaceWith('<tbody id="resourceData"><tr>' +
-                                    '<td><a href="' + rrUrl + '">' + rrUrl + '</a></td>' + 
-                                    '<td>' + modified + '</td>' +  
-                                    '<td>' + rrLinksCount + '</td>' +  
-                                    '</tr></tbody>');
+                            var rrLinksCount = rrRdf
+                                .prefix("rr", "http://jazz.net/ns/ism/registry#")
+                                .where("<" + rrUrl + "> rr:providerRecord ?rr")
+                                .size();
+
+                            resourceRecordHtmlStr = resourceRecordHtmlStr + "<tr>" +
+                                "<td><a href='" + rrUrl + "'>" + rrUrl + "</a></td>" + 
+                                "<td>" + modified + "</td>" +  
+                                "<td>" + rrLinksCount + "</td>" +  
+                                "</tr>";
+                        
                         });
+
+                        resourceRecordHtmlStr = resourceRecordHtmlStr +
+                            "</tbody>";
+                        $(resourceDataJSId)
+                            .replaceWith(resourceRecordHtmlStr);
                     }
                 },
                 error: function(data, textStatus, jqXHR) {
                     alert(data.responseText);
                 },
-                dataType : 'xml'
+                dataType : "xml"
             });
         }
 
@@ -183,36 +193,37 @@
         }
 
         $.ajax({
-            url : '/oslc/pr/collection?oslc.select=*',
+            url : "/oslc/pr/collection?oslc.select=*",
             success : function(data, textStatus, jqXHR) {
                 spRdf = $.rdf().load(data, {});
                 spRdf
-                  .prefix('dcterms', 'http://purl.org/dc/terms/')
-                  .prefix('rr', 'http://jazz.net/ns/ism/registry#')
+                  .prefix("dcterms", "http://purl.org/dc/terms/")
+                  .prefix("rr", "http://jazz.net/ns/ism/registry#")
                   .where("?s a <http://open-services.net/ns/core#ServiceProvider>")
                   .optional("?s dcterms:title ?title")
                   .optional("?s dcterms:description ?description")
                   .optional("?s rr:sourceRecord ?sourceRecord")
                   .each(function () {
                     var 
-                      title = this.title === undefined ? 'No title' : this.title.value,
-                      description = this.description === undefined ? 'No description' : this.description.value,
+                      title = this.title === undefined ? "No title" : this.title.value,
+                      description = this.description === undefined ? "No description" : this.description.value,
                       spUrl = this.s.value;
                       sourceRecordUrl = this.sourceRecord === undefined ? '' : this.sourceRecord.value;
 
-                      $("#providersData")
-                        .append('<tr>' +
-                            '<td>' + title + '</td>' +
-                            '<td>' + description + '</td>' + 
-                            '<td><a href="' + spUrl + '">' + spUrl + '</a></td>' + 
-                            '<td><a href="' + sourceRecordUrl + '">' + sourceRecordUrl + '</a></td>' + 
-                            '<td><a onclick="displayRecordsFromServiceProvider(\'' + spUrl + '\')"><img src="images/action_go.gif"/></a></td>' + 
-                            '</tr>');
+                      $('#providersData')
+                        .append("<tr>" +
+                            "<td>" + title + "</td>" +
+                            "<td>" + description + "</td>" + 
+                            "<td><a href='" + spUrl + "'>" + spUrl + "</a></td>" + 
+                            "<td><a href='" + sourceRecordUrl + "'>" + sourceRecordUrl + "</a></td>" + 
+                            "<td><a onclick='displayRecordsFromServiceProvider(\"" + spUrl + 
+                            "\")'><img src='images/action_go.gif'/></a></td>" + 
+                            "</tr>");
                   });
                 
             },
 
-            dataType : 'xml'
+            dataType : "xml"
         });
     </script>
 </body>
