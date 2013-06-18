@@ -84,16 +84,17 @@
                        "</tr></tbody>");
 
             var 
-                encodedSpUrl = encodeURIComponent("<" + spUrl +">"),
-                whereClause = "oslc.where=oslc:serviceProvider=" + encodedSpUrl;
+                serviceProviderFilter = encodeURIComponent("oslc:serviceProvider=<" + spUrl +">"),
+                whereClause = "oslc.where=" + serviceProviderFilter;
             $.ajax({
                 url : "/oslc/rr/registration/collection?oslc.select=*&" + whereClause,
                 success : function(data, textStatus, jqXHR) {
                     regrRdf = $.rdf().load(data, {});
                     var regrRdfMatches = regrRdf
-                      .prefix("rr", "http://jazz.net/ns/ism/registry#")
-                      .where("?s a <http://jazz.net/ns/ism/registry#RegistrationRecord>")
-                      .where("?s rr:sourceRecord ?sourceRecord");
+                        .prefix("rr", "http://jazz.net/ns/ism/registry#")
+                        .prefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
+                        .where("?collection rdfs:member ?regRecord")
+                        .where("?regRecord rr:sourceRecord ?sourceRecord");
 
                     if (regrRdfMatches.size() == 0) {
                         $(registrationDataJSId)
@@ -106,7 +107,7 @@
                             "<tbody id='registrationData'>";
                         regrRdfMatches.each(function () {
                             var 
-                              rrUrl = this.s.value,
+                              rrUrl = this.regRecord.value,
                               sourceRecordUrl = this.sourceRecord.value;
 
                               registrationHtmlStr = registrationHtmlStr +
@@ -137,15 +138,19 @@
                        "<td>Fetching resource records...</td><td/><td/>" + 
                        "</tr></tbody>");
                        
-            var whereClause = "oslc.where=" + 
-                        encodeURI("rr:providerRecord{oslc:serviceProvider=<" + spUrl + ">}");
+            var
+                serviceProviderFilter = encodeURI("rr:providerRecord{oslc:serviceProvider=<" + 
+                    spUrl + ">}"),
+                whereClause = "oslc.where=" + serviceProviderFilter;
             $.ajax({
-                url : "/oslc/rr//collection?oslc.select=*&" + whereClause,
+                url : "/oslc/rr/collection?oslc.select=*&" + whereClause,
                 success : function(data, textStatus, jqXHR) {
                     rrRdf = $.rdf().load(data, {});
                     var rrRdfMatches = rrRdf
                         .prefix("dcterms", "http://purl.org/dc/terms/")
-                        .where("?s dcterms:modified ?time");
+                        .prefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
+                        .where("?collection rdfs:member ?rr")
+                        .where("?rr dcterms:modified ?time");
                                        
                     if (rrRdfMatches.size() == 0) {
                         $(resourceDataJSId)
@@ -158,12 +163,12 @@
 
                         rrRdfMatches.each(function (i, bindings, rrTriples) {
                             var 
-                                rrUrl = this.s.value,
+                                rrUrl = this.rr.value,
                                 modified = this.time.value;
 
                             var rrLinksCount = rrRdf
                                 .prefix("rr", "http://jazz.net/ns/ism/registry#")
-                                .where("<" + rrUrl + "> rr:providerRecord ?rr")
+                                .where("<" + rrUrl + "> rr:providerRecord ?pr")
                                 .size();
 
                             resourceRecordHtmlStr = resourceRecordHtmlStr + "<tr>" +
@@ -208,9 +213,9 @@
                       title = this.title === undefined ? "No title" : this.title.value,
                       description = this.description === undefined ? "No description" : this.description.value,
                       spUrl = this.s.value;
-                      sourceRecordUrl = this.sourceRecord === undefined ? '' : this.sourceRecord.value;
+                      sourceRecordUrl = this.sourceRecord === undefined ? "" : this.sourceRecord.value;
 
-                      $('#providersData')
+                      $("#providersData")
                         .append("<tr>" +
                             "<td>" + title + "</td>" +
                             "<td>" + description + "</td>" + 
